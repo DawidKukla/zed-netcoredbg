@@ -2,13 +2,13 @@
 
 A Zed extension that provides debugging support for .NET applications using [netcoredbg](https://github.com/Samsung/netcoredbg).
 
-Currently only support Mac arm64 and Linux AMD64 due to an upstream [issue with netcoredbg](https://github.com/Samsung/netcoredbg/issues/197).
+Currently, only supports macOS arm64 and Linux AMD64 due to an upstream [issue with netcoredbg](https://github.com/Samsung/netcoredbg/issues/197).
 
 ## Installation
 
 ### Development Installation
 
-1. Install [rustup](https://rustup.rs/)
+1. Install [rustup](https://rustup.rs/) and run `rustup default stable` if you have it not already configured. 
 2. Clone this repository
 3. Open Zed
 4. Go to Extensions (Cmd+Shift+X on macOS)
