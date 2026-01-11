@@ -16,18 +16,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug: show workspace + force repo root
+        run: |
+          Write-Host "GITHUB_WORKSPACE=$env:GITHUB_WORKSPACE"
+          Write-Host "PWD=$(Get-Location)"
+          Write-Host "Setting location to GITHUB_WORKSPACE..."
+          Set-Location -Path $env:GITHUB_WORKSPACE
+          Write-Host "PWD(after)=$(Get-Location)"
+          Write-Host "Top-level files/dirs:"
+          Get-ChildItem -Force | Select-Object Name
+          if (!(Test-Path "Cargo.toml")) {
+            throw "Cargo.toml not found in repo root. Current dir: $(Get-Location)"
+          }
+
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Show repository layout
-        run: |
-          Get-Location
-          Get-ChildItem -Force | Select-Object Name
-
       - name: Verify toolchain
         run: |
+          Set-Location -Path $env:GITHUB_WORKSPACE
           rustc -Vv
           cargo -V
           where.exe rustc
@@ -35,6 +44,8 @@ jobs:
 
       - name: Build (release) using MSVC env (needed for kernel32.lib)
         run: |
+          Set-Location -Path $env:GITHUB_WORKSPACE
+
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           if (!(Test-Path $vswhere)) { throw "vswhere not found at: $vswhere" }
 
