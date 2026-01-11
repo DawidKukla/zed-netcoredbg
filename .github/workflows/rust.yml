@@ -1,6 +1,6 @@
 name: Build (Windows)
 
-'on':
+"on":
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug: show workspace + force repo root
+      - name: Debug show workspace + force repo root
         run: |
           Write-Host "GITHUB_WORKSPACE=$env:GITHUB_WORKSPACE"
           Write-Host "PWD=$(Get-Location)"
