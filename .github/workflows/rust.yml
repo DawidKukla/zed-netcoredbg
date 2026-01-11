@@ -20,9 +20,8 @@ jobs:
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
         with:
-          # Cache based on Cargo.lock and workspace state
           workspaces: |
-            .zed/zed-netcoredbg -> target
+            . -> target
 
       - name: Verify toolchain
         shell: pwsh
@@ -31,13 +30,23 @@ jobs:
           cargo -V
           where.exe rustc
           where.exe cargo
-          where.exe link.exe
+          # This may point to Git's link.exe, so don't rely on it for correctness.
+          where.exe link.exe || $true
 
-      - name: Build (release)
+      - name: Build (release) using MSVC env
         shell: pwsh
-        working-directory: .zed/zed-netcoredbg
         run: |
-          cargo build --release
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (!(Test-Path $vswhere)) { throw "vswhere not found at: $vswhere" }
+
+          $vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ([string]::IsNullOrWhiteSpace($vsInstall)) { throw "No Visual Studio installation with VC Tools found." }
+
+          $vsDevCmd = Join-Path $vsInstall "Common7\Tools\VsDevCmd.bat"
+          if (!(Test-Path $vsDevCmd)) { throw "VsDevCmd.bat not found at: $vsDevCmd" }
+
+          # Run cargo within an MSVC-initialized environment so kernel32.lib (Windows SDK) can be found.
+          cmd /c "`"$vsDevCmd`" -arch=x64 -host_arch=x64 && cargo build --release"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -45,9 +54,9 @@ jobs:
           name: zed-netcoredbg-windows-release
           if-no-files-found: error
           path: |
-            .zed/zed-netcoredbg/target/release/*.dll
-            .zed/zed-netcoredbg/target/release/*.pdb
-            .zed/zed-netcoredbg/extension.toml
-            .zed/zed-netcoredbg/debug_adapter_schemas/**
-            .zed/zed-netcoredbg/README.md
-            .zed/zed-netcoredbg/LICENSE
+            target/release/*.dll
+            target/release/*.pdb
+            extension.toml
+            debug_adapter_schemas/**
+            README.md
+            LICENSE
