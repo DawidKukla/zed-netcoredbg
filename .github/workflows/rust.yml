@@ -11,7 +11,6 @@ jobs:
     defaults:
       run:
         shell: pwsh
-        working-directory: .zed/zed-netcoredbg
 
     steps:
       - name: Checkout
@@ -26,10 +25,6 @@ jobs:
         run: |
           Get-Location
           Get-ChildItem -Force | Select-Object Name
-          Write-Host "----- .zed -----"
-          if (Test-Path ".zed") { Get-ChildItem -Force ".zed" | Select-Object Name } else { Write-Host ".zed directory not found" }
-          Write-Host "----- Cargo project dir -----"
-          if (Test-Path ".zed/zed-netcoredbg") { Get-ChildItem -Force ".zed/zed-netcoredbg" | Select-Object Name } else { throw "Expected Cargo project directory missing: .zed/zed-netcoredbg" }
 
       - name: Verify toolchain
         run: |
@@ -57,8 +52,8 @@ jobs:
           name: zed-netcoredbg-windows-release
           if-no-files-found: error
           path: |
-            .zed/zed-netcoredbg/target/release/*.dll
-            .zed/zed-netcoredbg/target/release/*.pdb
+            target/release/*.dll
+            target/release/*.pdb
             extension.toml
             debug_adapter_schemas/**
             README.md
