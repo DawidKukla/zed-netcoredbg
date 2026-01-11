@@ -8,6 +8,11 @@ jobs:
     name: Build extension on Windows
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: .zed/zed-netcoredbg
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,16 +22,16 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
-      # Keep this workflow minimal until it builds reliably.
-      # (You can add Swatinem/rust-cache later once the build is stable.)
       - name: Show repository layout
-        shell: pwsh
         run: |
           Get-Location
           Get-ChildItem -Force | Select-Object Name
+          Write-Host "----- .zed -----"
+          if (Test-Path ".zed") { Get-ChildItem -Force ".zed" | Select-Object Name } else { Write-Host ".zed directory not found" }
+          Write-Host "----- Cargo project dir -----"
+          if (Test-Path ".zed/zed-netcoredbg") { Get-ChildItem -Force ".zed/zed-netcoredbg" | Select-Object Name } else { throw "Expected Cargo project directory missing: .zed/zed-netcoredbg" }
 
       - name: Verify toolchain
-        shell: pwsh
         run: |
           rustc -Vv
           cargo -V
@@ -34,7 +39,6 @@ jobs:
           where.exe cargo
 
       - name: Build (release) using MSVC env (needed for kernel32.lib)
-        shell: pwsh
         run: |
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           if (!(Test-Path $vswhere)) { throw "vswhere not found at: $vswhere" }
@@ -53,8 +57,8 @@ jobs:
           name: zed-netcoredbg-windows-release
           if-no-files-found: error
           path: |
-            target/release/*.dll
-            target/release/*.pdb
+            .zed/zed-netcoredbg/target/release/*.dll
+            .zed/zed-netcoredbg/target/release/*.pdb
             extension.toml
             debug_adapter_schemas/**
             README.md
